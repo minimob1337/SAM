@@ -23,8 +23,8 @@ namespace SAM.Core
 
         public string Read(string Key, string Section = null)
         {
-            var RetVal = new StringBuilder(255);
-            GetPrivateProfileString(Section ?? EXE, Key, "", RetVal, 255, Path);
+            var RetVal = new StringBuilder(4096);
+            GetPrivateProfileString(Section ?? EXE, Key, "", RetVal, 4096, Path);
             return RetVal.ToString();
         }
 

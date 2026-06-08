@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:SAM.Views"
                  xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="Account Info" Height="460" Width="450" ResizeMode="NoResize" Icon="/Resources/steam.ico" WindowStartupLocation="CenterScreen">
+        Title="Account Info" Height="495" Width="450" ResizeMode="NoResize" Icon="/Resources/steam.ico" WindowStartupLocation="CenterScreen">
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
             <Grid Width="20" Height="20" Background="Transparent" RenderOptions.EdgeMode="Aliased" RenderOptions.BitmapScalingMode="HighQuality">
@@ -35,10 +35,12 @@
         <Button x:Name="CustomParamsHelpButton" Content="?" Margin="0,249,15,0" Height="23" Width="25" HorizontalAlignment="Right" ToolTip="Steam parameters documentation" Click="CustomParamsHelpButton_Click" VerticalAlignment="Top"/>
         <Label x:Name="DescriptionLabel" Content="Description" ToolTip="Enter a description for this entry. Will display as a tooltip." HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="25,285,0,0" />
         <TextBox Name="DescriptionBox" Padding="3,3,3,3" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Height="63" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="101,284,0,0" Width="333"/>
-        <CheckBox x:Name="autoLogCheckBox" Content="Auto Login" HorizontalAlignment="Left" Margin="314,361,0,0" VerticalAlignment="Top" ToolTip="Auto login to this account when Steam is not open" />
-        <Button Name="OKButton" Content="OK" Grid.Column="0" Margin="120,393,0,0" Click="OKButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
-        <Button Name="CancelButton" Content="Cancel" Margin="225,393,0,0" Click="CancelButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
-        <ComboBox Name="FriendsOnlineStatusComboBox" HorizontalAlignment="Left" Margin="101,355,0,0" VerticalAlignment="Top" Width="157" Height="30" SelectedIndex="0" IsEnabled="False"/>
-        <Label x:Name="FriendsLoginStatusLabel" Content="Friends Status" ToolTip="Determine how to login to Friends when Steam opens" HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="13,357,0,0" />
+        <Label x:Name="CategoryLabel" Content="Category" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="38,355,0,0"/>
+        <ComboBox x:Name="CategoryComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,353,0,0" Width="157" Height="28" IsEditable="False"/>
+        <CheckBox x:Name="autoLogCheckBox" Content="Auto Login" HorizontalAlignment="Left" Margin="314,396,0,0" VerticalAlignment="Top" ToolTip="Auto login to this account when Steam is not open" />
+        <Button Name="OKButton" Content="OK" Grid.Column="0" Margin="120,428,0,0" Click="OKButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
+        <Button Name="CancelButton" Content="Cancel" Margin="225,428,0,0" Click="CancelButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
+        <ComboBox Name="FriendsOnlineStatusComboBox" HorizontalAlignment="Left" Margin="101,390,0,0" VerticalAlignment="Top" Width="157" Height="30" SelectedIndex="0" IsEnabled="False"/>
+        <Label x:Name="FriendsLoginStatusLabel" Content="Friends Status" ToolTip="Determine how to login to Friends when Steam opens" HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="13,392,0,0" />
     </Grid>
 </mah:MetroWindow>

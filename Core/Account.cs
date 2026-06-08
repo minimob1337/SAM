@@ -32,6 +32,8 @@ namespace SAM.Core
 
         public string Description { get; set; }
 
+        public string Category { get; set; }
+
         public FriendsLoginStatus FriendsLoginStatus { get; set; }
 
         public bool CommunityBanned { get; set; }

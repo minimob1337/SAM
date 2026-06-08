@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SAM.Core
@@ -16,6 +17,10 @@ namespace SAM.Core
         public const string SECTION_PARAMETERS = "Parameters";
         public const string SECTION_LOCATION = "Location";
         public const string SECTION_COLUMNS = "Columns";
+        public const string SECTION_CATEGORIES = "Categories";
+
+        public const string CATEGORIES_LIST = "CategoryList";
+        public const string SELECTED_CATEGORY = "SelectedCategory";
 
         public IniFile File = new IniFile(FILE_NAME);
         public UserSettings User = new UserSettings();
@@ -394,6 +399,28 @@ namespace SAM.Core
         {
             File.Write(LAST_AUTO_RELOAD, dateTime.ToString(), SECTION_STEAM);
             User.LastAutoReload = dateTime;
+        }
+
+        public List<string> GetCategories()
+        {
+            string raw = File.Read(CATEGORIES_LIST, SECTION_CATEGORIES);
+            if (string.IsNullOrEmpty(raw)) return new List<string>();
+            return raw.Split(',').Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+        }
+
+        public void SaveCategories(List<string> categories)
+        {
+            File.Write(CATEGORIES_LIST, string.Join(",", categories), SECTION_CATEGORIES);
+        }
+
+        public string GetSelectedCategory()
+        {
+            return File.Read(SELECTED_CATEGORY, SECTION_CATEGORIES);
+        }
+
+        public void SaveSelectedCategory(string category)
+        {
+            File.Write(SELECTED_CATEGORY, category ?? "", SECTION_CATEGORIES);
         }
     }
 }

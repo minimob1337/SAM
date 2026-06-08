@@ -146,6 +146,7 @@
                         <DataGridTextColumn Header="Game Bans" Binding="{Binding NumberOfGameBans}" />
                         <DataGridTextColumn Header="Economy Ban" Binding="{Binding EconomyBan}" />
                         <DataGridTextColumn Header="Last Ban (Days)" Binding="{Binding DaysSinceLastBan}" />
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" />
                     </DataGrid.Columns>
                 </DataGrid>
                 <Grid x:Name="AddButtonGrid" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20,0,0">
@@ -183,7 +184,10 @@
                     <Border DockPanel.Dock="Top" Height="20" VerticalAlignment="Top">
                         <Menu x:Name="FileMenu" Margin="0,1,0,0" FontSize="{DynamicResource MenuFontSize}">
                             <MenuItem x:Name="FileMenuItem" Header="File" Padding="{DynamicResource MenuItemPadding}">
-                                <MenuItem Header="Add" Click="AddButton_Click" />
+                                <MenuItem Header="Add">
+                                    <MenuItem Header="Account" Click="AddAccountMenuItem_Click" />
+                                    <MenuItem Header="Category" Click="AddCategoryMenuItem_Click" />
+                                </MenuItem>
                                 <MenuItem Header="Import">
                                     <MenuItem Header="From DAT File" Click="ImportFromFileMenuItem_Click" />
                                     <MenuItem Header="Delimiter Separated" Click="ImportDelimitedTextMenuItem_Click" />
@@ -211,6 +215,7 @@
                                     <MenuItem Header="Alias" Click="SortAlias_Click"/>
                                     <MenuItem Header="Banned" Click="SortBanned_Click"/>
                                     <MenuItem Header="Random" Click="ShuffleAccounts_Click"/>
+                                    <MenuItem Header="Category" Click="SortCategory_Click"/>
                                 </MenuItem>
                             </MenuItem>
                             <MenuItem Header="Help" Padding="{DynamicResource MenuItemPadding}">
@@ -219,6 +224,11 @@
                                 <Separator />
                             </MenuItem>
                         </Menu>
+                    </Border>
+                    <Border x:Name="CategoryBarBorder" DockPanel.Dock="Top" Height="28" Visibility="Collapsed">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <StackPanel x:Name="CategoryTabPanel" Orientation="Horizontal" />
+                        </ScrollViewer>
                     </Border>
                     <Grid x:Name="buttonGrid"/>
                 </DockPanel>

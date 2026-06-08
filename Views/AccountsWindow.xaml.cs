@@ -71,6 +71,9 @@ namespace SAM.Views
 
         private static readonly int maxRetry = 3;
 
+        private static List<string> categories;
+        private static string selectedCategory = null;
+
         // Resize animation variables
         private static readonly System.Windows.Forms.Timer _Timer = new System.Windows.Forms.Timer();
         private int _Stop = 0;
@@ -317,7 +320,7 @@ namespace SAM.Views
                     column.DisplayIndex = (int)settings.User.KeyValuePairs[settings.ListViewColumns[column.Header.ToString()]];
                 }
 
-                AccountsDataGrid.ItemsSource = accounts;
+                AccountsDataGrid.ItemsSource = GetFilteredAccounts();
                 AccountsDataGrid.Visibility = Visibility.Visible;
 
                 SetMainScrollViewerBarsVisibility(ScrollBarVisibility.Auto);
@@ -507,7 +510,7 @@ namespace SAM.Views
                 SerializeAccounts();
             }
 
-            AccountsDataGrid.ItemsSource = accounts;
+            AccountsDataGrid.ItemsSource = GetFilteredAccounts();
 
             if (firstLoad && settings.User.AutoReloadEnabled && AccountUtils.ShouldAutoReload(settings.User.LastAutoReload, settings.User.AutoReloadInterval))
             {
@@ -656,6 +659,17 @@ namespace SAM.Views
 
             timeoutTimers = new List<System.Timers.Timer>();
 
+            buttonGrid.Children.Clear();
+            TaskBarIconLoginContextMenu.Items.Clear();
+            TaskBarIconLoginContextMenu.IsEnabled = false;
+
+            BuildCategoryTabs();
+
+            int catBarOffset = (CategoryBarBorder.Visibility == Visibility.Visible) ? 28 : 0;
+            BackgroundBorder.Margin = new Thickness(0, 20 + catBarOffset, 0, 0);
+            BackgroundBorder.Padding = new Thickness(0, 20, 0, 0);
+            AccountsDataGrid.Margin = new Thickness(0, 20 + catBarOffset, 0, 0);
+
             int bCounter = 0;
             int xCounter = 0;
             int yCounter = 0;
@@ -664,7 +678,8 @@ namespace SAM.Views
 
             if (accounts != null)
             {
-                foreach (var account in accounts)
+                List<Account> displayAccounts = GetFilteredAccounts();
+                foreach (var account in displayAccounts)
                 {
                     string tempPass = StringCipher.Decrypt(account.Password, eKey);
 
@@ -892,7 +907,7 @@ namespace SAM.Views
                         bCounter++;
                         xCounter++;
 
-                        if (bCounter % settings.User.AccountsPerRow == 0 && (!settings.User.HideAddButton || (settings.User.HideAddButton && bCounter != accounts.Count)))
+                        if (bCounter % settings.User.AccountsPerRow == 0 && (!settings.User.HideAddButton || (settings.User.HideAddButton && bCounter != displayAccounts.Count)))
                         {
                             yCounter++;
                             xCounter = 0;
@@ -925,24 +940,32 @@ namespace SAM.Views
                             xVal = xCounter;
                         }
 
-                        int newHeight = (buttonOffset * (yCounter + 1)) + 57;
-                        int newWidth = (buttonOffset * xVal) + 7;
+                        int categoryBarHeight = (CategoryBarBorder.Visibility == Visibility.Visible) ? 28 : 0;
+                        int categoryBarWidth = GetCategoryBarMinWidth();
+                        int newHeight = (buttonOffset * (yCounter + 1)) + 57 + categoryBarHeight;
+                        int newWidth = Math.Max((buttonOffset * xVal) + 7, categoryBarWidth);
 
                         Resize(newHeight, newWidth);
 
                         // Adjust new account and export/delete buttons
                         AddButtonGrid.HorizontalAlignment = HorizontalAlignment.Left;
                         AddButtonGrid.VerticalAlignment = VerticalAlignment.Top;
-                        AddButtonGrid.Margin = new Thickness((xCounter * buttonOffset) + 5, (yCounter * buttonOffset) + 25, 0, 0);
+                        AddButtonGrid.Margin = new Thickness((xCounter * buttonOffset) + 5, (yCounter * buttonOffset) + 25 + categoryBarHeight, 0, 0);
                     }
                     else
                     {
                         // Reset New Button position.
-                        Resize(180, 138);
+                        int categoryBarHeight = (CategoryBarBorder.Visibility == Visibility.Visible) ? 28 : 0;
+                        int categoryBarWidth = GetCategoryBarMinWidth();
+                        Resize(180 + categoryBarHeight, Math.Max(138, categoryBarWidth));
 
                         AddButtonGrid.HorizontalAlignment = HorizontalAlignment.Center;
                         AddButtonGrid.VerticalAlignment = VerticalAlignment.Center;
-                        AddButtonGrid.Margin = initialAddButtonGridMargin;
+                        AddButtonGrid.Margin = new Thickness(
+                            initialAddButtonGridMargin.Left,
+                            initialAddButtonGridMargin.Top + categoryBarHeight,
+                            initialAddButtonGridMargin.Right,
+                            initialAddButtonGridMargin.Bottom);
                         ResizeMode = ResizeMode.CanMinimize;
                     }
                 }
@@ -1068,6 +1091,33 @@ namespace SAM.Views
             }
 
             copyMenuItem.Items.Add(copyGuardTokenItem);
+
+            if (categories != null && categories.Count > 0)
+            {
+                var moveToCategoryItem = new MenuItem();
+                moveToCategoryItem.Header = "Move to Category";
+
+                var uncatItem = new MenuItem();
+                uncatItem.Header = "Uncategorized";
+                if (string.IsNullOrEmpty(account.Category))
+                    uncatItem.IsEnabled = false;
+                uncatItem.Click += delegate { MoveAccountToCategory(account, null); };
+                moveToCategoryItem.Items.Add(uncatItem);
+
+                foreach (string cat in categories)
+                {
+                    var catItem = new MenuItem();
+                    catItem.Header = cat;
+                    if (account.Category == cat)
+                        catItem.IsEnabled = false;
+                    string catCopy = cat;
+                    catItem.Click += delegate { MoveAccountToCategory(account, catCopy); };
+                    moveToCategoryItem.Items.Add(catItem);
+                }
+
+                accountContext.Items.Add(moveToCategoryItem);
+            }
+
             accountContext.Items.Add(deleteItem);
 
             return accountContext;
@@ -1130,7 +1180,8 @@ namespace SAM.Views
                         SteamId = steamId,
                         Parameters = dialog.ParametersText,
                         Description = dialog.DescriptionText,
-                        FriendsLoginStatus = dialog.FriendsLoginStatus
+                        FriendsLoginStatus = dialog.FriendsLoginStatus,
+                        Category = string.IsNullOrEmpty(dialog.CategoryText) ? null : dialog.CategoryText
                     };
 
                     await ReloadAccount(newAccount);
@@ -1166,7 +1217,8 @@ namespace SAM.Views
                 SteamId = account.SteamId,
                 ParametersText = account.Parameters,
                 DescriptionText = account.Description,
-                FriendsLoginStatus = account.FriendsLoginStatus
+                FriendsLoginStatus = account.FriendsLoginStatus,
+                CategoryText = account.Category
             };
 
             int index = accounts.FindIndex(a => a.GetHashCode() == account.GetHashCode());
@@ -1210,6 +1262,7 @@ namespace SAM.Views
                     account.Parameters = dialog.ParametersText;
                     account.Description = dialog.DescriptionText;
                     account.FriendsLoginStatus = dialog.FriendsLoginStatus;
+                    account.Category = string.IsNullOrEmpty(dialog.CategoryText) ? null : dialog.CategoryText;
 
                     SerializeAccounts();
                 }
@@ -1585,6 +1638,9 @@ namespace SAM.Views
                     case SortType.Random:
                         accounts = accounts.OrderBy(x => Guid.NewGuid()).ToList();
                         break;
+                    case SortType.Category:
+                        accounts = accounts.OrderBy(x => x.Category ?? "").ThenBy(x => x.Name).ToList();
+                        break;
                 }
 
                 if (hash != null)
@@ -1750,7 +1806,33 @@ namespace SAM.Views
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
+            ContextMenu addMenu = new ContextMenu();
+            addMenu.FontSize = (double)Application.Current.Resources["MenuFontSize"];
+
+            var addAccountItem = new MenuItem();
+            addAccountItem.Header = "Add Account";
+            addAccountItem.Click += delegate { AddAccount(); };
+
+            var addCategoryItem = new MenuItem();
+            addCategoryItem.Header = "Add Category";
+            addCategoryItem.Click += delegate { AddCategory(); };
+
+            addMenu.Items.Add(addAccountItem);
+            addMenu.Items.Add(addCategoryItem);
+
+            addMenu.PlacementTarget = (Button)sender;
+            addMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            addMenu.IsOpen = true;
+        }
+
+        private void AddAccountMenuItem_Click(object sender, RoutedEventArgs e)
+        {
             AddAccount();
+        }
+
+        private void AddCategoryMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AddCategory();
         }
 
         private void AccountButton_Click(object sender, RoutedEventArgs e)
@@ -1930,6 +2012,258 @@ namespace SAM.Views
         {
             SortAccounts(SortType.Random);
         }
+
+        private void SortCategory_Click(object sender, RoutedEventArgs e)
+        {
+            SortAccounts(SortType.Category);
+        }
+
+        #region Categories
+
+        private int GetCategoryBarMinWidth()
+        {
+            if (CategoryBarBorder.Visibility != Visibility.Visible)
+                return 0;
+
+            double totalWidth = 0;
+            foreach (Button tab in CategoryTabPanel.Children.OfType<Button>())
+            {
+                tab.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                totalWidth += tab.DesiredSize.Width;
+            }
+
+            return (int)totalWidth + 20;
+        }
+
+        private List<Account> GetFilteredAccounts()
+        {
+            if (selectedCategory == null || accounts == null)
+                return accounts;
+
+            if (selectedCategory == "")
+                return accounts.Where(a => string.IsNullOrEmpty(a.Category)).ToList();
+
+            return accounts.Where(a => a.Category == selectedCategory).ToList();
+        }
+
+        private void BuildCategoryTabs()
+        {
+            CategoryTabPanel.Children.Clear();
+            categories = settings.GetCategories();
+
+            if (categories.Count == 0)
+            {
+                CategoryBarBorder.Visibility = Visibility.Collapsed;
+                selectedCategory = null;
+                return;
+            }
+
+            CategoryBarBorder.Visibility = Visibility.Visible;
+
+            AddCategoryTabButton("All", null);
+
+            foreach (string cat in categories)
+            {
+                AddCategoryTabButton(cat, cat);
+            }
+
+            AddCategoryTabButton("Uncategorized", "");
+
+            selectedCategory = null;
+            string lastSelected = settings.GetSelectedCategory();
+            if (!string.IsNullOrEmpty(lastSelected) && categories.Contains(lastSelected))
+            {
+                selectedCategory = lastSelected;
+            }
+
+            UpdateCategoryTabSelection();
+        }
+
+        private void AddCategoryTabButton(string displayName, string categoryValue)
+        {
+            Button tab = new Button();
+            tab.Content = displayName;
+            tab.MinWidth = 60;
+            tab.Height = 24;
+            tab.Margin = new Thickness(2, 2, 0, 2);
+            tab.Padding = new Thickness(8, 2, 8, 2);
+            tab.Cursor = Cursors.Hand;
+            tab.Background = Brushes.Transparent;
+            tab.BorderThickness = new Thickness(0, 0, 0, 2);
+            tab.BorderBrush = Brushes.Transparent;
+            tab.Foreground = (Brush)FindResource("MahApps.Brushes.Text");
+            tab.DataContext = categoryValue;
+            tab.Click += CategoryTab_Click;
+            tab.MouseRightButtonUp += CategoryTab_RightClick;
+            CategoryTabPanel.Children.Add(tab);
+        }
+
+        private void UpdateCategoryTabSelection()
+        {
+            Brush accentBrush = (Brush)FindResource("MahApps.Brushes.Accent");
+
+            foreach (Button tab in CategoryTabPanel.Children.OfType<Button>())
+            {
+                string tabCategory = (string)tab.DataContext;
+                bool isSelected = (tabCategory == selectedCategory) ||
+                                  (tabCategory == null && selectedCategory == null);
+
+                tab.BorderBrush = isSelected ? accentBrush : Brushes.Transparent;
+                tab.FontWeight = isSelected ? FontWeights.Bold : FontWeights.Normal;
+            }
+        }
+
+        private void CategoryTab_Click(object sender, RoutedEventArgs e)
+        {
+            Button tab = (Button)sender;
+            selectedCategory = (string)tab.DataContext;
+            settings.SaveSelectedCategory(selectedCategory ?? "");
+            UpdateCategoryTabSelection();
+            PostDeserializedRefresh(false);
+        }
+
+        private void CategoryTab_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            Button tab = (Button)sender;
+            string categoryValue = (string)tab.DataContext;
+
+            if (categoryValue == null || categoryValue == "")
+                return;
+
+            ContextMenu tabContext = new ContextMenu();
+            tabContext.FontSize = (double)Application.Current.Resources["MenuFontSize"];
+
+            var renameItem = new MenuItem();
+            renameItem.Header = "Rename";
+            string catCopy = categoryValue;
+            renameItem.Click += async delegate { await RenameCategory(catCopy); };
+
+            var deleteItem = new MenuItem();
+            deleteItem.Header = "Delete";
+            deleteItem.Foreground = Brushes.Red;
+            deleteItem.Click += delegate { DeleteCategory(catCopy); };
+
+            tabContext.Items.Add(renameItem);
+            tabContext.Items.Add(deleteItem);
+
+            tabContext.PlacementTarget = tab;
+            tabContext.IsOpen = true;
+        }
+
+        private async void AddCategory()
+        {
+            string name = await this.ShowInputAsync("New Category", "Enter category name:");
+
+            if (string.IsNullOrWhiteSpace(name))
+                return;
+
+            name = name.Trim();
+
+            if (name.Contains(","))
+            {
+                MessageBox.Show("Category name cannot contain commas.", "Invalid Name",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (name.Equals("All", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("Uncategorized", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("\"All\" and \"Uncategorized\" are reserved names.", "Invalid Name",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            categories = settings.GetCategories();
+
+            if (categories.Any(c => c.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                MessageBox.Show("Category already exists.", "Duplicate",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            categories.Add(name);
+            settings.SaveCategories(categories);
+
+            selectedCategory = name;
+            settings.SaveSelectedCategory(name);
+
+            PostDeserializedRefresh(false);
+        }
+
+        private async Task RenameCategory(string oldName)
+        {
+            string newName = await this.ShowInputAsync("Rename Category",
+                "Enter new name for \"" + oldName + "\":",
+                new MetroDialogSettings { DefaultText = oldName });
+
+            if (string.IsNullOrWhiteSpace(newName) || newName.Trim() == oldName)
+                return;
+
+            newName = newName.Trim();
+
+            if (newName.Contains(",") ||
+                newName.Equals("All", StringComparison.OrdinalIgnoreCase) ||
+                newName.Equals("Uncategorized", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Invalid category name.", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            categories = settings.GetCategories();
+            int index = categories.IndexOf(oldName);
+            if (index >= 0)
+            {
+                categories[index] = newName;
+                settings.SaveCategories(categories);
+            }
+
+            foreach (Account account in accounts)
+            {
+                if (account.Category == oldName)
+                    account.Category = newName;
+            }
+
+            if (selectedCategory == oldName)
+                selectedCategory = newName;
+
+            SerializeAccounts();
+        }
+
+        private void DeleteCategory(string categoryName)
+        {
+            MessageBoxResult result = MessageBox.Show(
+                "Delete category \"" + categoryName + "\"?\n\nAccounts in this category will be moved to Uncategorized.",
+                "Delete Category", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            categories = settings.GetCategories();
+            categories.Remove(categoryName);
+            settings.SaveCategories(categories);
+
+            foreach (Account account in accounts)
+            {
+                if (account.Category == categoryName)
+                    account.Category = null;
+            }
+
+            if (selectedCategory == categoryName)
+                selectedCategory = null;
+
+            SerializeAccounts();
+        }
+
+        private void MoveAccountToCategory(Account account, string category)
+        {
+            account.Category = category;
+            SerializeAccounts();
+        }
+
+        #endregion
 
         private void ImportFromFileMenuItem_Click(object sender, RoutedEventArgs e)
         {
