@@ -786,5 +786,31 @@ namespace SAM.Core
 
             return false;
         }
+
+        public static (string AccountName, string SharedSecret) ParseMaFile(string filePath)
+        {
+            try
+            {
+                string content = File.ReadAllText(filePath);
+                JObject json = JObject.Parse(content);
+
+                string sharedSecret = json["shared_secret"]?.ToString();
+                string accountName = json["account_name"]?.ToString();
+
+                return (accountName, sharedSecret);
+            }
+            catch (JsonReaderException)
+            {
+                MessageBox.Show(
+                    "This .maFile appears to be encrypted. Please decrypt it in Steam Desktop Authenticator first.",
+                    "Import Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return (null, null);
+        }
     }
 }

@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:SAM.Views"
                  xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         mc:Ignorable="d"
-        Title="Account Info" Height="430" Width="450" ResizeMode="NoResize" Icon="/Resources/steam.ico" WindowStartupLocation="CenterScreen">
+        Title="Account Info" Height="460" Width="450" ResizeMode="NoResize" Icon="/Resources/steam.ico" WindowStartupLocation="CenterScreen">
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
             <Grid Width="20" Height="20" Background="Transparent" RenderOptions.EdgeMode="Aliased" RenderOptions.BitmapScalingMode="HighQuality">
@@ -24,20 +24,21 @@
         <PasswordBox Name="PasswordBox" PasswordChar="•"  Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="100,79,0,0" Width="334" />
         <Label x:Name="SharedSecretLabel" Content="Shared Secret" ToolTip="Can be found in your .maFile from Steam Desktop Authenticator" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,117,0,0" />
         <PasswordBox Name="SharedSecretBox" PasswordChar="•" Padding="3,3,3,3" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="101,114,0,0" Width="303" />
-        <Label x:Name="UrlLabel" Content="Profile URL" ToolTip="Enter steam profile url to get user avatar without an API key" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="27,151,0,0"/>
-        <TextBox Name="UrlTextBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,149,0,0" Width="333" LostFocus="UrlBox_LostFocus" GotFocus="UrlBox_GotFocus" />
-        <Label x:Name="SteamIdLabel" Content="Steam Id" ToolTip="Base64 Steam Id" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="39,186,0,0"/>
-        <TextBox x:Name="SteamIdBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,184,0,0" Width="333" TextChanged="SteamIdBox_TextChanged" />
-        <TextBox x:Name="ParametersBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,219,0,0" Width="303" />
-        <Label x:Name="ParametersLabel" Content="Parameters" ToolTip="Overrides global launch parameters for this account" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,221,0,0"/>
-        <Button x:Name="CustomParamsHelpButton" Content="?" Margin="0,219,15,0" Height="23" Width="25" HorizontalAlignment="Right" ToolTip="Steam parameters documentation" Click="CustomParamsHelpButton_Click" VerticalAlignment="Top"/>
-        <Label x:Name="DescriptionLabel" Content="Description" ToolTip="Enter a description for this entry. Will display as a tooltip." HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="25,255,0,0" />
-        <TextBox Name="DescriptionBox" Padding="3,3,3,3" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Height="63" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="101,254,0,0" Width="333"/>
-        <CheckBox x:Name="autoLogCheckBox" Content="Auto Login" HorizontalAlignment="Left" Margin="314,331,0,0" VerticalAlignment="Top" ToolTip="Auto login to this account when Steam is not open" />
-        <Button Name="OKButton" Content="OK" Grid.Column="0" Margin="120,363,0,0" Click="OKButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
-        <Button Name="CancelButton" Content="Cancel" Margin="225,363,0,0" Click="CancelButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
-        <ComboBox Name="FriendsOnlineStatusComboBox" HorizontalAlignment="Left" Margin="101,325,0,0" VerticalAlignment="Top" Width="157" Height="30" SelectedIndex="0" IsEnabled="False"/>
-        <Label x:Name="FriendsLoginStatusLabel" Content="Friends Status" ToolTip="Determine how to login to Friends when Steam opens" HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="13,327,0,0" />
         <Button x:Name="SharedSecretHelpButton" Content="?" Margin="0,114,15,0" Height="23" Width="25" HorizontalAlignment="Right" ToolTip="Steam Desktop Authenticator GitHub" Click="SharedSecretHelpButton_Click" VerticalAlignment="Top"/>
+        <Button x:Name="ImportMaFileButton" Content="Import .maFile" Margin="101,144,0,0" Height="25" Width="120" HorizontalAlignment="Left" VerticalAlignment="Top" Click="ImportMaFileButton_Click"/>
+        <Label x:Name="UrlLabel" Content="Profile URL" ToolTip="Enter steam profile url to get user avatar without an API key" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="27,181,0,0"/>
+        <TextBox Name="UrlTextBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,179,0,0" Width="333" LostFocus="UrlBox_LostFocus" GotFocus="UrlBox_GotFocus" />
+        <Label x:Name="SteamIdLabel" Content="Steam Id" ToolTip="Base64 Steam Id" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="39,216,0,0"/>
+        <TextBox x:Name="SteamIdBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,214,0,0" Width="333" TextChanged="SteamIdBox_TextChanged" />
+        <TextBox x:Name="ParametersBox" Padding="3,3,3,3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="101,249,0,0" Width="303" />
+        <Label x:Name="ParametersLabel" Content="Parameters" ToolTip="Overrides global launch parameters for this account" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="26,251,0,0"/>
+        <Button x:Name="CustomParamsHelpButton" Content="?" Margin="0,249,15,0" Height="23" Width="25" HorizontalAlignment="Right" ToolTip="Steam parameters documentation" Click="CustomParamsHelpButton_Click" VerticalAlignment="Top"/>
+        <Label x:Name="DescriptionLabel" Content="Description" ToolTip="Enter a description for this entry. Will display as a tooltip." HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="25,285,0,0" />
+        <TextBox Name="DescriptionBox" Padding="3,3,3,3" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Height="63" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="101,284,0,0" Width="333"/>
+        <CheckBox x:Name="autoLogCheckBox" Content="Auto Login" HorizontalAlignment="Left" Margin="314,361,0,0" VerticalAlignment="Top" ToolTip="Auto login to this account when Steam is not open" />
+        <Button Name="OKButton" Content="OK" Grid.Column="0" Margin="120,393,0,0" Click="OKButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
+        <Button Name="CancelButton" Content="Cancel" Margin="225,393,0,0" Click="CancelButton_Click" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
+        <ComboBox Name="FriendsOnlineStatusComboBox" HorizontalAlignment="Left" Margin="101,355,0,0" VerticalAlignment="Top" Width="157" Height="30" SelectedIndex="0" IsEnabled="False"/>
+        <Label x:Name="FriendsLoginStatusLabel" Content="Friends Status" ToolTip="Determine how to login to Friends when Steam opens" HorizontalAlignment="Left" VerticalAlignment="Top" Height="28" Margin="13,357,0,0" />
     </Grid>
 </mah:MetroWindow>

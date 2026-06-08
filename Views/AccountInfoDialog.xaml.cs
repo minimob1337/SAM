@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using Microsoft.Win32;
 using System.Windows;
 using SAM.Core;
 using System;
@@ -191,6 +192,29 @@ namespace SAM.Views
         private void SharedSecretHelpButton_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://github.com/Jessecar96/SteamDesktopAuthenticator");
+        }
+
+        private void ImportMaFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog
+            {
+                DefaultExt = ".maFile",
+                Filter = "Steam Authenticator Files (*.maFile)|*.maFile|All Files (*.*)|*.*"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var parsed = AccountUtils.ParseMaFile(dialog.FileName);
+
+                if (!string.IsNullOrEmpty(parsed.SharedSecret))
+                {
+                    SharedSecretBox.Password = parsed.SharedSecret;
+                }
+                else
+                {
+                    MessageBox.Show("No shared_secret found in the selected file.", "Import Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
     }
 }

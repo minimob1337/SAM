@@ -9,6 +9,7 @@
         Login,
         Code,
         Loading,
-        Success
+        Success,
+        MobileConfirmation
     }
 }

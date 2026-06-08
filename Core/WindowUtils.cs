@@ -229,6 +229,12 @@ namespace SAM.Core
                     window.Focus();
 
                     AutomationElement document = window.FindFirstDescendant(e => e.ByControlType(ControlType.Document));
+
+                    if (document == null)
+                    {
+                        return LoginWindowState.Invalid;
+                    }
+
                     AutomationElement[] children = document.FindAllChildren();
 
                     if (children.Length == 0)
@@ -297,6 +303,16 @@ namespace SAM.Core
                     {
                         return LoginWindowState.Login;
                     }
+
+                    AutomationElement[] allDescendants = document.FindAllDescendants();
+                    foreach (AutomationElement desc in allDescendants)
+                    {
+                        string name = (desc.Name ?? "").ToLower();
+                        if (name.Contains("enter a code"))
+                        {
+                            return LoginWindowState.MobileConfirmation;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -318,6 +334,12 @@ namespace SAM.Core
                     window.Focus();
 
                     AutomationElement document = window.FindFirstDescendant(e => e.ByControlType(ControlType.Document));
+
+                    if (document == null)
+                    {
+                        return LoginWindowState.Invalid;
+                    }
+
                     AutomationElement[] groups = document.FindAllChildren(e => e.ByControlType(ControlType.Group));
 
                     Button addAccountButton = groups[groups.Length - 1].AsButton();
@@ -345,6 +367,12 @@ namespace SAM.Core
                     window.Focus();
 
                     AutomationElement document = window.FindFirstDescendant(e => e.ByControlType(ControlType.Document));
+
+                    if (document == null)
+                    {
+                        return LoginWindowState.Invalid;
+                    }
+
                     AutomationElement[] children = document.FindAllChildren();
 
                     var inputs = new List<AutomationElement>();
@@ -416,6 +444,12 @@ namespace SAM.Core
                     window.Focus();
 
                     AutomationElement document = window.FindFirstDescendant(e => e.ByControlType(ControlType.Document));
+
+                    if (document == null)
+                    {
+                        return LoginWindowState.Invalid;
+                    }
+
                     AutomationElement[] buttons = document.FindAllChildren(e => e.ByControlType(ControlType.Button));
 
                     string code = Generate2FACode(secret);
@@ -445,6 +479,7 @@ namespace SAM.Core
 
             return LoginWindowState.Invalid;
         }
+
 
         public static AutomationElement WaitForChildEdit(AutomationElement parent, int timeoutMs = 500, int intervalMs = 10)
         {
